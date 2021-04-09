@@ -1,11 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/joshcarp/mirror/mirror"
 )
 
 func main() {
 	fmt.Println("Start server...")
-	mirror.Serve(":8000")
+	mirror.Serve(context.Background(), ":8000")
 }

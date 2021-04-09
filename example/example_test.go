@@ -13,7 +13,9 @@ import (
 )
 
 func ExampleServe() {
-	go mirror.Serve(":8000")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go mirror.Serve(ctx, ":8000")
 	time.Sleep(1)
 	mirror.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte("Hello"))
 	resp, _ := http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
@@ -25,7 +27,9 @@ func ExampleServe() {
 }
 
 func ExampleGRPC(){
-	go mirror.Serve(":8000")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go mirror.Serve(ctx, ":8000")
 	time.Sleep(1)
 	conn, err := grpc.Dial("localhost:8000", grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
