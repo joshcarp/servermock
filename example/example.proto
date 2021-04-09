@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/joshcarp/mirror;example";
+option java_multiple_files = true;
+option java_package = "com.joshcarp.example";
+option java_outer_classname = "example";
+
+package example;
+
+message example {
+  string name = 1;
+  string whatever = 2;
+}
+
+service ExampleService {
+  rpc getExample(example)returns (example);
+}
