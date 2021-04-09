@@ -32,19 +32,18 @@ func ExampleGRPC(){
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
+	client := NewExampleServiceClient(conn)
 
 	mirror.SetGRPCResponse("http://localhost:8000", "/example.ExampleService/getExample", &Example{
 		Name:          "ExampleName",
 		Whatever:      "ExampleFoo",
 	})
-	client := NewExampleServiceClient(conn)
 
 	example, err := client.GetExample(context.Background(), &Example{})
 	fmt.Println(example)
+
 	// Output:
 	// Setting Data for request: /example.ExampleService/getExample Lentgth: 25
 	// Returning bytes for request: /example.ExampleService/getExample
-	// name:"ExampleName"  whatever:"ExampleFoo"
-
-
+	// name:"ExampleName" whatever:"ExampleFoo"
 }
