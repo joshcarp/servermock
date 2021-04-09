@@ -1,6 +1,7 @@
 package mirror
 
 import (
+	"fmt"
 	"github.com/joshcarp/mirror/data"
 	"github.com/joshcarp/mirror/unknown"
 	"google.golang.org/grpc"
@@ -18,6 +19,7 @@ func GRPC(ln net.Listener, sm *sync.Map) func() error {
 			if len(tracearr) != 1 {
 				return nil
 			}
+			fmt.Println("Returning bytes for request: %s", tracearr[0])
 			u := unknown.Unknown{}
 			proto.Unmarshal(data.LoadData(sm, tracearr[0]), &u)
 			return stream.SendMsg(&u)
