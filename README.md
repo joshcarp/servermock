@@ -13,7 +13,7 @@ SetGRPCResponse("http://localhost:8000", "traceid1234", proto.Message)
 SetJsonResponse("http://localhost:8000", "traceid1234", interface{})
 
 ```
-2b. Use the `Set-Data:` Header to post data for a traceid
+2b. OR use the `Set-Data:` Header to post data for a traceid
 ```bash
 curl -d '{"Request": "1"}' -H "Set-Data: 5678" -H "X-B3-TraceId: 99999" localhost:8000 -X POST
 curl -d '{"Request": "2"}' -H "Set-Data: 5678" -H "X-B3-TraceId: 99999" localhost:8000 -X POST
@@ -31,6 +31,6 @@ curl -H "X-B3-TraceId: 99999" localhost:8000
 > {"Request": "3"}
 ```
 
-or whatever the equivilent grpc request would be
+or whatever the equivalent grpc request would be
 Note: Requests are set FIFO for every TraceID, and a request is cleared from memory once a request is completed
 
