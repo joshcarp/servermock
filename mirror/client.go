@@ -2,6 +2,7 @@ package mirror
 
 import (
 	"bytes"
+	"encoding/json"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 )
@@ -22,6 +23,14 @@ func SetResponse(url string, trace string, b []byte) error {
 
 func SetGRPCResponse(url string, trace string, m proto.Message) error {
 	b, err := proto.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return SetResponse(url, trace, b)
+}
+
+func SetJsonResponse(url string, trace string, m interface{}) error {
+	b, err := json.Marshal(m)
 	if err != nil {
 		return err
 	}
