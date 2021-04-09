@@ -7,5 +7,5 @@ import (
 
 func main() {
 	fmt.Println("Start server...")
-	mirror.Serve()
+	mirror.Serve(":8000")
 }

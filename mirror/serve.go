@@ -6,9 +6,9 @@ import (
 	"sync"
 )
 
-func Serve() {
+func Serve(addr string) {
 	g := errgroup.Group{}
-	ln, err := net.Listen("tcp", ":8000")
+	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		panic(err)
 	}
