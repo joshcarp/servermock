@@ -21,13 +21,13 @@ func (s Server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	if r.ProtoMajor != 1 {
 		return
 	}
-	trace := r.Header.Get("X-B3-TraceId")
+	Endpoint := r.URL.Path
 	if r.Header.Get("Set-Data") != "" {
 		b, _ := ioutil.ReadAll(r.Body)
-		data.StoreData(s.sm, trace, b)
-		fmt.Printf("Setting Data for request: %s Lentgth: %d\n", trace, len(b))
+		data.StoreData(s.sm, Endpoint, b)
+		fmt.Printf("Setting Data for request: %s Lentgth: %d\n", Endpoint, len(b))
 		return
 	}
-	fmt.Printf("Loading data for for request: %s\n", trace)
-	wr.Write(data.LoadData(s.sm, trace))
+	fmt.Printf("Loading data for for request: %s\n", Endpoint)
+	wr.Write(data.LoadData(s.sm, Endpoint))
 }

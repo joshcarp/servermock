@@ -9,6 +9,10 @@ func StoreData(sm *sync.Map, trace string, data []byte) {
 		return
 	}
 	valBytes := val.([][]byte)
+	if len(valBytes) == 0 {
+		sm.Store(trace, [][]byte{data})
+		return
+	}
 	sm.Store(trace, append([][]byte{data}, valBytes...)) //[n-1] is always the element to be read (and deleted) first
 }
 
