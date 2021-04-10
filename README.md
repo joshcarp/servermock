@@ -1,10 +1,10 @@
-# Mirror
+# dmt
 
-A grpc/http dynamic stub
+Dynamic Mocking Tool
 
 ## Usage
 
-1. run a mirror server ./mirror
+1. run a dmt server ./dmt
 
 2a. use the go API to set a response for a traceID
 

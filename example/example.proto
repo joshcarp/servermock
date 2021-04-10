@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/joshcarp/mirror;example";
+option go_package = "github.com/joshcarp/dmt;example";
 option java_multiple_files = true;
 option java_package = "com.joshcarp.example";
 option java_outer_classname = "example";
