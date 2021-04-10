@@ -2,15 +2,15 @@ package dmt
 
 import (
 	"fmt"
-	"github.com/joshcarp/dmt/data"
-	"github.com/joshcarp/dmt/unknown"
+	"github.com/joshcarp/dmt/internal/data"
+	"github.com/joshcarp/dmt/internal/unknown"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"net"
 	"sync"
 )
 
-func GRPC(ln net.Listener, sm *sync.Map) func() error {
+func servegrpc(ln net.Listener, sm *sync.Map) func() error {
 	return func() error {
 		return grpc.NewServer(grpc.UnknownServiceHandler(func(srv interface{}, stream grpc.ServerStream) error {
 			method, ok := grpc.MethodFromServerStream(stream)

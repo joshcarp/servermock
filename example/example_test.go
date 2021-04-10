@@ -3,7 +3,7 @@ package example
 import (
 	"context"
 	"fmt"
-	"github.com/joshcarp/dmt/dmt"
+	"github.com/joshcarp/dmt/pkg/dmt"
 	"google.golang.org/grpc"
 	"io"
 	"log"

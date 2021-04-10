@@ -2,22 +2,22 @@ package dmt
 
 import (
 	"fmt"
-	"github.com/joshcarp/dmt/data"
+	"github.com/joshcarp/dmt/internal/data"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"sync"
 )
 
-type Server struct {
+type server struct {
 	sm *sync.Map
 }
 
-func HTTP(ln net.Listener, sm *sync.Map) func() error {
-	return func() error { return http.Serve(ln, Server{sm: sm}) }
+func servehttp(ln net.Listener, sm *sync.Map) func() error {
+	return func() error { return http.Serve(ln, server{sm: sm}) }
 }
 
-func (s Server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
+func (s server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	if r.ProtoMajor != 1 {
 		return
 	}
