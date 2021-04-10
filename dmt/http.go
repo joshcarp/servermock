@@ -1,8 +1,8 @@
-package mirror
+package dmt
 
 import (
 	"fmt"
-	"github.com/joshcarp/mirror/data"
+	"github.com/joshcarp/dmt/data"
 	"io/ioutil"
 	"net"
 	"net/http"

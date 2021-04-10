@@ -3,7 +3,7 @@ package example
 import (
 	"context"
 	"fmt"
-	"github.com/joshcarp/mirror/mirror"
+	"github.com/joshcarp/dmt/dmt"
 	"google.golang.org/grpc"
 	"io"
 	"log"
@@ -15,9 +15,9 @@ import (
 func ExampleServe() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	go mirror.Serve(ctx, ":8000")
+	go dmt.Serve(ctx, ":8000")
 	time.Sleep(1)
-	mirror.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte("Hello"))
+	dmt.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte("Hello"))
 	resp, _ := http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
 	io.Copy(os.Stdout, resp.Body)
 	// Output:
@@ -29,7 +29,7 @@ func ExampleServe() {
 func ExampleGRPC(){
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	go mirror.Serve(ctx, ":8000")
+	go dmt.Serve(ctx, ":8000")
 	time.Sleep(1)
 	conn, err := grpc.Dial("localhost:8000", grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
@@ -38,7 +38,7 @@ func ExampleGRPC(){
 	defer conn.Close()
 	client := NewExampleServiceClient(conn)
 
-	mirror.SetGRPCResponse("http://localhost:8000", "/example.ExampleService/getExample", &Example{
+	dmt.SetGRPCResponse("http://localhost:8000", "/example.ExampleService/getExample", &Example{
 		Name:          "ExampleName",
 		Whatever:      "ExampleFoo",
 	})

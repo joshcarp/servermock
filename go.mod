@@ -1,4 +1,4 @@
-module github.com/joshcarp/mirror
+module github.com/joshcarp/dmt
 
 go 1.16
 

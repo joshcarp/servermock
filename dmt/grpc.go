@@ -1,9 +1,9 @@
-package mirror
+package dmt
 
 import (
 	"fmt"
-	"github.com/joshcarp/mirror/data"
-	"github.com/joshcarp/mirror/unknown"
+	"github.com/joshcarp/dmt/data"
+	"github.com/joshcarp/dmt/unknown"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"net"
