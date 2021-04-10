@@ -14,8 +14,8 @@ func Serve(ctx context.Context, addr string) {
 		panic(err)
 	}
 	sm := &sync.Map{}
-	g.Go(GRPC(ln, sm))
-	g.Go(HTTP(ln, sm))
+	g.Go(servegrpc(ln, sm))
+	g.Go(servehttp(ln, sm))
 	select {
 	case <-ctx.Done():
 		return
