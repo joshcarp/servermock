@@ -15,4 +15,4 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Test
-        run: go test ./...
+        run: docker run -v $(pwd):/src/app golang:buster sh -c "cd /src/app && go test ./..."
