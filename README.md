@@ -6,7 +6,7 @@ Dynamic Mocking Tool
 
 1. run a dmt server ./dmt
 
-2a. use the go API to set a response for a traceID
+2a. use the go API to set a response for a path
 
 ```go
 SetResponse("http://localhost:8000", "/path/whatever", "{'Foo':'Bar'}")
@@ -15,7 +15,7 @@ SetJsonResponse("http://localhost:8000", "/path/whatever", interface{})
 
 ```
 
-2b. OR use the `Set-Data:` Header to post data for a traceid
+2b. OR use the `Set-Data:` Header to post data for a path
 
 ```bash
 curl -d '{"Request": "1"}' -H "Set-Data: true" localhost:8000/path/whatever -X POST
@@ -34,6 +34,8 @@ curl localhost:8000/path/whatever
 > {"Request": "3"}
 ```
 
-or whatever the equivalent grpc request would be Note: Requests are set FIFO for every TraceID, and a request is cleared
+or whatever the equivalent grpc request would be (not supporting the reflection api)
+
+Note: Requests are set FIFO for every Path, and a request is cleared
 from memory once a request is completed
 
