@@ -1,5 +1,5 @@
-on: [ push ]
 name: Install
+on: [ push ]
 jobs:
   test:
     strategy:
@@ -13,6 +13,6 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Go Get Check
-          uses: joshcarp/gogetcheck@v0.6.0
-          with:
-            package: github.com/joshcarp/dmt/pkg/dmt
+        uses: joshcarp/gogetcheck@v0.6.0
+        with:
+          package: github.com/joshcarp/dmt/pkg/dmt
