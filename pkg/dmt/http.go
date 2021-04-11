@@ -23,11 +23,16 @@ func (s server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	}
 	Endpoint := r.URL.Path
 	if r.Header.Get("Set-Data") != "" {
-		b, _ := ioutil.ReadAll(r.Body)
+		b, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			fmt.Printf("Error setting Data for request: %s", Endpoint)
+		}
 		data.StoreData(s.sm, Endpoint, b)
-		fmt.Printf("Setting Data for request: %s Lentgth: %d\n", Endpoint, len(b))
+		fmt.Printf("Setting Data for request: %s Length: %d\n", Endpoint, len(b))
 		return
 	}
 	fmt.Printf("Loading data for for request: %s\n", Endpoint)
-	wr.Write(data.LoadData(s.sm, Endpoint))
+	if d := data.LoadData(s.sm, Endpoint); d != nil && len(d) != 0 {
+		wr.Write(d)
+	}
 }
