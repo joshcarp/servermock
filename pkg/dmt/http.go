@@ -32,7 +32,7 @@ func (s server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("Loading data for for request: %s\n", Endpoint)
-	if d := data.LoadData(s.sm, Endpoint); d != nil && len(d) != 0 {
-		wr.Write(d)
+	if d := data.LoadData(s.sm, Endpoint); len(d) != 0 {
+		_, _ = wr.Write(d)
 	}
 }

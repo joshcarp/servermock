@@ -21,10 +21,8 @@ func Serve(ctx context.Context, addr string) error {
 	g.Go(servegrpc(ln, sm))
 	g.Go(servehttp(ln, sm))
 	go func() {
-		select {
-		case <-ctx.Done():
-			ln.Close()
-		}
+		<-ctx.Done()
+		ln.Close()
 	}()
 	bo := gax.Backoff{
 		Initial:    time.Second,
@@ -35,7 +33,7 @@ func Serve(ctx context.Context, addr string) error {
 		_, err := http.Get("http://localhost" + addr)
 		if err != nil {
 			if err := gax.Sleep(ctx, bo.Pause()); err != nil {
-
+				return err
 			}
 			continue
 		}
