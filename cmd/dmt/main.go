@@ -16,4 +16,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not start server")
 	}
+	f := make(chan struct{})
+	<-f
 }
