@@ -2,29 +2,29 @@ package data
 
 import "sync"
 
-func StoreData(sm *sync.Map, trace string, data []byte) {
+func StoreData(sm *sync.Map, trace string, data Request) {
 	val, ok := sm.Load(trace)
 	if !ok {
-		sm.Store(trace, [][]byte{data})
+		sm.Store(trace, []Request{data})
 		return
 	}
-	valBytes := val.([][]byte)
+	valBytes := val.([]Request)
 	if len(valBytes) == 0 {
-		sm.Store(trace, [][]byte{data})
+		sm.Store(trace, []Request{data})
 		return
 	}
-	sm.Store(trace, append([][]byte{data}, valBytes...)) //[n-1] is always the element to be read (and deleted) first
+	sm.Store(trace, append([]Request{data}, valBytes...)) //[n-1] is always the element to be read (and deleted) first
 }
 
-func LoadData(sm *sync.Map, trace string) []byte {
+func LoadData(sm *sync.Map, trace string) (Request, bool) {
 	val, ok := sm.Load(trace)
 	if !ok {
-		return nil
+		return Request{}, false
 	}
-	valBytes := val.([][]byte)
+	valBytes := val.([]Request)
 	if len(valBytes) == 0 {
-		return nil
+		return Request{}, false
 	}
 	sm.Store(trace, valBytes[:len(valBytes)-1])
-	return valBytes[len(valBytes)-1]
+	return valBytes[len(valBytes)-1], true
 }
