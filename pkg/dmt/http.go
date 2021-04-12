@@ -5,6 +5,7 @@ import (
 	"github.com/joshcarp/dmt/internal/data"
 	"github.com/joshcarp/dmt/internal/unknown"
 	"golang.org/x/sync/errgroup"
+	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,7 +28,6 @@ func New(log Logger) *server {
 	s.http = &http.Server{Handler: s}
 	s.grpc = grpc.NewServer(grpc.UnknownServiceHandler(s.ServeGRPC))
 	return s
-
 }
 
 func (s server) Serve(ln net.Listener) error {
@@ -64,6 +64,7 @@ func (s server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	s.log("Loading data for for request: %s\n", Endpoint)
 	d, ok := data.LoadData(s.sm, Endpoint)
 	if ok {
+		wr.WriteHeader(d.StatusCode)
 		for key, val := range d.Headers {
 			wr.Header().Add(key, val[0])
 		}
@@ -83,14 +84,17 @@ func (s server) ServeGRPC(_ interface{}, stream grpc.ServerStream) error {
 	if !ok {
 		return status.Error(codes.Unknown, "Unknown request")
 	}
-	stream.SetHeader(d.Headers)
-	if d.IsError{
-		err := status.Status{}
-		proto.Unmarshal(d.Body, err.Proto())
-		return err.Err()
+	err := stream.SetHeader(d.Headers)
+	if err != nil {
+		return err
+	}
+	if d.IsError {
+		uproto := &spb.Status{}
+		_ = proto.Unmarshal(d.Body, uproto)
+		return status.FromProto(uproto).Err()
 	}
 	u := unknown.Unknown{}
-	err := proto.Unmarshal(d.Body, &u)
+	err = proto.Unmarshal(d.Body, &u)
 	if err != nil {
 		return err
 	}
