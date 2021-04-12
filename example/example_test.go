@@ -22,7 +22,7 @@ func ExampleSetResponse() {
 	if err != nil {
 		panic(err)
 	}
-	err = dmt.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte(`{"Hello": "true"}`))
+	err = dmt.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte(`{"Hello": "true"}`), nil, false)
 	if err != nil {
 		panic(err)
 	}
@@ -62,7 +62,7 @@ func ExampleSetGRPCResponse() {
 	err = dmt.SetGRPCResponse("http://localhost:8000", "/example.ExampleService/getExample", &Example{
 		Name:     "ExampleName",
 		Whatever: "ExampleFoo",
-	})
+	}, nil, false)
 	if err != nil {
 		panic(err)
 	}

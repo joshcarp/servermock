@@ -1,6 +1,7 @@
 package dmt
 
 import (
+	"encoding/json"
 	"github.com/joshcarp/dmt/internal/data"
 	"github.com/joshcarp/dmt/internal/unknown"
 	"golang.org/x/sync/errgroup"
@@ -13,8 +14,6 @@ import (
 	"net/http"
 	"sync"
 )
-
-type Logger func(format string, args ...interface{})
 
 type server struct {
 	sm   *sync.Map
@@ -53,27 +52,45 @@ func (s server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.log("Error setting Data for request: %s\n", Endpoint)
 		}
-		data.StoreData(s.sm, Endpoint, b)
-		s.log("Setting Data for request: %s Length: %d\n", Endpoint, len(b))
+		entry := data.Request{}
+		if err = json.Unmarshal(b, &entry); err != nil {
+			wr.WriteHeader(500)
+			return
+		}
+		data.StoreData(s.sm, Endpoint, entry)
+		s.log("Setting Data for request: %s Length: %d\n", Endpoint, len(entry.Body))
 		return
 	}
 	s.log("Loading data for for request: %s\n", Endpoint)
-	d := data.LoadData(s.sm, Endpoint)
-	if len(d) != 0 {
-		_, _ = wr.Write(d)
+	d, ok := data.LoadData(s.sm, Endpoint)
+	if ok {
+		for key, val := range d.Headers {
+			wr.Header().Add(key, val[0])
+		}
+		_, _ = wr.Write(d.Body)
 		return
 	}
 	wr.WriteHeader(500)
 }
 
-func (s server) ServeGRPC(srv interface{}, stream grpc.ServerStream) error {
+func (s server) ServeGRPC(_ interface{}, stream grpc.ServerStream) error {
 	method, ok := grpc.MethodFromServerStream(stream)
 	if !ok {
 		return status.Error(codes.Unknown, "Unknown request")
 	}
 	s.log("Returning bytes for request: %s\n", method)
+	d, ok := data.LoadData(s.sm, method)
+	if !ok {
+		return status.Error(codes.Unknown, "Unknown request")
+	}
+	stream.SetHeader(d.Headers)
+	if d.IsError{
+		err := status.Status{}
+		proto.Unmarshal(d.Body, err.Proto())
+		return err.Err()
+	}
 	u := unknown.Unknown{}
-	err := proto.Unmarshal(data.LoadData(s.sm, method), &u)
+	err := proto.Unmarshal(d.Body, &u)
 	if err != nil {
 		return err
 	}
