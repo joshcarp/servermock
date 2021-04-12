@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/joshcarp/dmt/internal/data"
 	"github.com/joshcarp/dmt/internal/unknown"
+	"github.com/soheilhy/cmux"
 	"golang.org/x/sync/errgroup"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
@@ -32,8 +33,12 @@ func New(log Logger) *server {
 
 func (s server) Serve(ln net.Listener) error {
 	e := errgroup.Group{}
-	e.Go(func() error { return s.http.Serve(ln) })
-	e.Go(func() error { return s.grpc.Serve(ln) })
+	mux := cmux.New(ln)
+	grpcL := mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
+	httpL := mux.Match(cmux.Any())
+	e.Go(mux.Serve)
+	e.Go(func() error { return s.http.Serve(httpL) })
+	e.Go(func() error { return s.grpc.Serve(grpcL) })
 	return e.Wait()
 }
 
