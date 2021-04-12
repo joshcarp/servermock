@@ -12,7 +12,7 @@ func main() {
 	p := flag.String("port", ":8000", "port to run dmt server on")
 	flag.Parse()
 	fmt.Println("Start server...")
-	err := dmt.Serve(context.Background(), *p)
+	err := dmt.Serve(context.Background(), log.Printf, *p)
 	if err != nil {
 		log.Fatalf("Could not start server")
 	}

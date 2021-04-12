@@ -6,33 +6,39 @@ import (
 	"github.com/joshcarp/dmt/pkg/dmt"
 	"google.golang.org/grpc"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
+
+func Printf(format string, v ...interface{}) {
+	fmt.Printf(format, v...)
+}
 
 func ExampleSetResponse() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	err := dmt.Serve(ctx, ":8000")
+	err := dmt.Serve(ctx, Printf, ":8000")
 	if err != nil {
-		log.Fatalf("Could not start server")
+		panic(err)
 	}
-	fmt.Println(dmt.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte(`{"Hello": "true"}`)))
+	err = dmt.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte(`{"Hello": "true"}`))
+	if err != nil {
+		panic(err)
+	}
 	resp, err := http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
 	if err != nil {
 		panic(err)
 	}
 	_, _ = io.Copy(os.Stdout, resp.Body)
 	fmt.Println()
+	// or defer cancel()
+	cancel()
 
 	// Output:
 	// ------------------------
 	// Loading data for for request: /
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
-	// <nil>
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
 	// {"Hello": "true"}
 	// ------------------------
@@ -42,14 +48,13 @@ func ExampleSetGRPCResponse() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	err := dmt.Serve(ctx, ":8000")
+	err := dmt.Serve(ctx, Printf, ":8000")
 	if err != nil {
-		log.Fatalf("Could not start server")
+		panic(err)
 	}
 	conn, err := grpc.Dial("localhost:8000", grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		panic(err)
 	}
 	defer conn.Close()
 	client := NewExampleServiceClient(conn)
@@ -59,20 +64,20 @@ func ExampleSetGRPCResponse() {
 		Whatever: "ExampleFoo",
 	})
 	if err != nil {
-		log.Fatalf("Could not set grpc response")
+		panic(err)
 	}
 
 	example, err := client.GetExample(context.Background(), &Example{})
-	fmt.Println(err)
 	fmt.Println(example.Name)
 	fmt.Println(example.Whatever)
+	// or defer cancel()
+	cancel()
 
 	// Output:
 	// ------------------------
 	// Loading data for for request: /
 	// Setting Data for request: /example.ExampleService/getExample Length: 25
 	// Returning bytes for request: /example.ExampleService/getExample
-	// <nil>
 	// ExampleName
 	// ExampleFoo
 	// ------------------------

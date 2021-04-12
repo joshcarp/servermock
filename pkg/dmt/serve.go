@@ -3,27 +3,27 @@ package dmt
 import (
 	"context"
 	"github.com/googleapis/gax-go/v2"
-	"golang.org/x/sync/errgroup"
 	"net"
 	"net/http"
-	"sync"
 	"time"
 )
 
 /* Serve servers a dmt server and blocks until the server is running. Use context.WithCancel to stop the server */
-func Serve(ctx context.Context, addr string) error {
-	g := errgroup.Group{}
+func Serve(ctx context.Context, log Logger, addr string) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
-	sm := &sync.Map{}
-	g.Go(servegrpc(ln, sm))
-	g.Go(servehttp(ln, sm))
+	s := New(log)
+	go func() {
+		_ = s.Serve(ln)
+	}()
 	go func() {
 		<-ctx.Done()
+		s.Stop()
 		ln.Close()
 	}()
+
 	bo := gax.Backoff{
 		Initial:    time.Second,
 		Multiplier: 2,
