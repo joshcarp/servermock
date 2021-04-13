@@ -3,7 +3,6 @@ package dmt
 import (
 	"encoding/json"
 	"github.com/joshcarp/dmt/internal/data"
-	"github.com/joshcarp/dmt/internal/unknown"
 	"github.com/soheilhy/cmux"
 	"golang.org/x/sync/errgroup"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
@@ -11,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -98,7 +98,7 @@ func (s server) ServeGRPC(_ interface{}, stream grpc.ServerStream) error {
 		_ = proto.Unmarshal(d.Body, uproto)
 		return status.FromProto(uproto).Err()
 	}
-	u := unknown.Unknown{}
+	u := anypb.Any{}
 	err = proto.Unmarshal(d.Body, &u)
 	if err != nil {
 		return err
