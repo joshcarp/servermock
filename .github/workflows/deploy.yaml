@@ -1,7 +1,8 @@
-name: deploy protoc
+name: deploy dmt
 
 on:
   push:
+    branches: [ master ]
 
 jobs:
   push_to_registry:
