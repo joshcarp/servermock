@@ -7,10 +7,11 @@
 package example
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -107,10 +108,13 @@ func file_example_proto_rawDescGZIP() []byte {
 	return file_example_proto_rawDescData
 }
 
-var file_example_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_example_proto_goTypes = []interface{}{
-	(*Example)(nil), // 0: example.example
-}
+var (
+	file_example_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_example_proto_goTypes  = []interface{}{
+		(*Example)(nil), // 0: example.example
+	}
+)
+
 var file_example_proto_depIdxs = []int32{
 	0, // 0: example.ExampleService.getExample:input_type -> example.example
 	0, // 1: example.ExampleService.getExample:output_type -> example.example
