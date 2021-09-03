@@ -4,6 +4,7 @@ package example
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -46,8 +47,7 @@ type ExampleServiceServer interface {
 }
 
 // UnimplementedExampleServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedExampleServiceServer struct {
-}
+type UnimplementedExampleServiceServer struct{}
 
 func (UnimplementedExampleServiceServer) GetExample(context.Context, *Example) (*Example, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetExample not implemented")

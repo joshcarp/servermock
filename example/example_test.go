@@ -1,15 +1,18 @@
+//nolint: govet
 package example
 
 import (
 	"context"
 	"fmt"
-	"github.com/joshcarp/dmt/pkg/dmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/joshcarp/dmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func Printf(format string, v ...interface{}) {
@@ -24,7 +27,12 @@ func ExampleSetResponse() {
 	if err != nil {
 		panic(err)
 	}
-	err = dmt.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", []byte(`{"Hello": "true"}`), nil, false, 200)
+
+	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		Body:       []byte(`{"Hello": "true"}`),
+		StatusCode: 200,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -34,6 +42,15 @@ func ExampleSetResponse() {
 	}
 	_, _ = io.Copy(os.Stdout, resp.Body)
 	fmt.Println()
+
+	/* Make another request */
+	resp, err = http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
+	if err != nil {
+		panic(err)
+	}
+	_, _ = io.Copy(os.Stdout, resp.Body)
+	fmt.Println()
+
 	// or defer cancel()
 	cancel()
 
@@ -43,10 +60,12 @@ func ExampleSetResponse() {
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
 	// {"Hello": "true"}
+	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
+	// {"Hello": "true"}
 	// ------------------------
 }
 
-func ExampleSetGRPCResponse() {
+func ExampleSetResponseStack() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -54,17 +73,114 @@ func ExampleSetGRPCResponse() {
 	if err != nil {
 		panic(err)
 	}
-	conn, err := grpc.Dial("localhost:8000", grpc.WithInsecure(), grpc.WithBlock())
+
+	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		Body:       []byte(`{"Hello": "true"}`),
+		StatusCode: 200,
+		IsStack:    true,
+	})
+	if err != nil {
+		panic(err)
+	}
+	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		Body:       []byte(`{"Hello": "Blah"}`),
+		StatusCode: 200,
+		IsStack:    true,
+	})
+	if err != nil {
+		panic(err)
+	}
+	resp, err := http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
+	if err != nil {
+		panic(err)
+	}
+	_, _ = io.Copy(os.Stdout, resp.Body)
+	fmt.Println()
+
+	/* Make another request */
+	resp, err = http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
+	if err != nil {
+		panic(err)
+	}
+	_, _ = io.Copy(os.Stdout, resp.Body)
+	fmt.Println()
+
+	// or defer cancel()
+	cancel()
+
+	// Output:
+	// ------------------------
+	// Loading data for for request: /
+	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
+	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
+	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
+	// {"Hello": "true"}
+	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
+	// {"Hello": "Blah"}
+	// ------------------------
+}
+
+func ExampleReset() {
+	fmt.Println("------------------------")
+	defer fmt.Println("------------------------")
+	ctx, cancel := context.WithCancel(context.Background())
+	err := dmt.Serve(ctx, Printf, ":8000")
+	if err != nil {
+		panic(err)
+	}
+
+	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		Body:       []byte(`{"Hello": "true"}`),
+		StatusCode: 200,
+	})
+	if err != nil {
+		panic(err)
+	}
+	err = dmt.Reset("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever")
+	if err != nil {
+		panic(err)
+	}
+	resp, err := http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
+	if err != nil {
+		panic(err)
+	}
+	_, _ = io.Copy(os.Stdout, resp.Body)
+	fmt.Println()
+
+	// or defer cancel()
+	cancel()
+
+	// Output:
+	// ------------------------
+	// Loading data for for request: /
+	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
+	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
+	//
+	// ------------------------
+}
+
+func ExampleSetGRPCResponse() {
+	fmt.Println("------------------------")
+	defer fmt.Println("------------------------")
+	ctx, cancel := context.WithCancel(context.Background())
+	err := dmt.Serve(ctx, Printf, ":8001")
+	if err != nil {
+		panic(err)
+	}
+	conn, err := grpc.Dial("localhost:8001", grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
 	client := NewExampleServiceClient(conn)
 
-	err = dmt.SetGRPCResponse("http://localhost:8000", "/example.ExampleService/getExample", &Example{
+	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{
 		Name:     "ExampleName",
 		Whatever: "ExampleFoo",
-	}, nil, false, 200)
+	}, dmt.Request{Path: "/example.ExampleService/getExample"})
 	if err != nil {
 		panic(err)
 	}
@@ -101,8 +217,12 @@ func ExampleSetGRPCError() { //nolint: govet
 	client := NewExampleServiceClient(conn)
 
 	err = dmt.SetGRPCResponse("http://localhost:8000",
-		"/example.ExampleService/getExample",
-		status.New(codes.Unknown, "Whatever123").Proto(), nil, true, 0)
+		status.New(codes.Unknown, "Whatever123").Proto(),
+		dmt.Request{
+			Path:    "/example.ExampleService/getExample",
+			Body:    nil,
+			IsError: true,
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -121,7 +241,7 @@ func ExampleSetGRPCError() { //nolint: govet
 	// ------------------------
 }
 
-func ExampleSetResponseError() { //nolint: govet
+func ExampleSetResponseError() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -129,11 +249,10 @@ func ExampleSetResponseError() { //nolint: govet
 	if err != nil {
 		panic(err)
 	}
-	err = dmt.SetResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever",
-		nil,
-		nil,
-		false,
-		404)
+	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		StatusCode: 404,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -151,5 +270,123 @@ func ExampleSetResponseError() { //nolint: govet
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 0
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
 	// Error code: 404
+	// ------------------------
+}
+
+func ExampleSetResponseHeaderKeys() {
+	fmt.Println("------------------------")
+	defer fmt.Println("------------------------")
+	ctx, cancel := context.WithCancel(context.Background())
+	err := dmt.Serve(ctx, Printf, ":8001")
+	if err != nil {
+		panic(err)
+	}
+	conn, err := grpc.Dial("localhost:8001", grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	client := NewExampleServiceClient(conn)
+
+	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{
+		Name:     "ExampleName",
+		Whatever: "ExampleFoo",
+	}, dmt.Request{Path: "/example.ExampleService/getExample", HeaderKeys: dmt.HeaderPair{Key: "Authorisation", Val: []string{"Bearer foo123"}}})
+	if err != nil {
+		panic(err)
+	}
+	example, _ := client.GetExample(metadata.AppendToOutgoingContext(ctx, "Authorisation", "Bearer foo123"), &Example{})
+	fmt.Println(example.Name)
+	fmt.Println(example.Whatever)
+	// or defer cancel()
+	cancel()
+
+	// Output:
+	// ------------------------
+	// Loading data for for request: /
+	// Setting Data for request: /example.ExampleService/getExample Length: 25
+	// Returning bytes for request: /example.ExampleService/getExample
+	// ExampleName
+	// ExampleFoo
+	// ------------------------
+}
+
+func ExampleServeRand() {
+	fmt.Println("------------------------")
+	defer fmt.Println("------------------------")
+	ctx, cancel := context.WithCancel(context.Background())
+	port, err := dmt.ServeRand(ctx, Printf)
+	if err != nil {
+		panic(err)
+	}
+
+	err = dmt.SetResponse(fmt.Sprintf("http://localhost:%d", port), dmt.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		Body:       []byte(`{"Hello": "true"}`),
+		StatusCode: 200,
+	})
+	if err != nil {
+		panic(err)
+	}
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/foo.service.bar.SomethingAPI/GetWhatever", port))
+	if err != nil {
+		panic(err)
+	}
+	_, _ = io.Copy(os.Stdout, resp.Body)
+	fmt.Println()
+
+	/* Make another request */
+	resp, err = http.Get(fmt.Sprintf("http://localhost:%d/foo.service.bar.SomethingAPI/GetWhatever", port))
+	if err != nil {
+		panic(err)
+	}
+	_, _ = io.Copy(os.Stdout, resp.Body)
+	fmt.Println()
+
+	// or defer cancel()
+	cancel()
+
+	// Output:
+	// ------------------------
+	// Loading data for for request: /
+	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
+	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
+	// {"Hello": "true"}
+	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
+	// {"Hello": "true"}
+	// ------------------------
+}
+
+func ExampleGetResponses() {
+	fmt.Println("------------------------")
+	defer fmt.Println("------------------------")
+	ctx, cancel := context.WithCancel(context.Background())
+	port, err := dmt.ServeRand(ctx, Printf)
+	if err != nil {
+		panic(err)
+	}
+
+	err = dmt.SetResponse(fmt.Sprintf("http://localhost:%d", port), dmt.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		Body:       []byte(`{"Hello": "true"}`),
+		StatusCode: 200,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	reqs, err := dmt.GetResponses(fmt.Sprintf("http://localhost:%d", port), "/foo.service.bar.SomethingAPI/GetWhatever")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(reqs)
+	// or defer cancel()
+	cancel()
+
+	// Output:
+	// ------------------------
+	// Loading data for for request: /
+	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
+	// [{/foo.service.bar.SomethingAPI/GetWhatever map[] [123 34 72 101 108 108 111 34 58 32 34 116 114 117 101 34 125] false 200 false { []}}]
 	// ------------------------
 }

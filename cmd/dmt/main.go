@@ -4,8 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/joshcarp/dmt/pkg/dmt"
 	"log"
+
+	"github.com/joshcarp/dmt"
 )
 
 func main() {
