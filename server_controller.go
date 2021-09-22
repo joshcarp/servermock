@@ -70,6 +70,9 @@ func (s server) ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 		InterfaceToWriter(reqs, wr)
 		return
 	default:
-		s.loadHttp(wr, Endpoint)
+		err := s.loadHttp(wr, Endpoint, func(s string) []string { return r.Header.Values(s) })
+		if err != nil {
+			s.log("Error returning bytes: %v", err)
+		}
 	}
 }
