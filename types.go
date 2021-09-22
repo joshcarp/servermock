@@ -8,7 +8,7 @@ type Request struct {
 	Body       []byte              `json:"body"`
 	IsError    bool                `json:"is_error"`
 	StatusCode int                 `json:"status_code"`
-	IsStack    bool                `json:"stack"`
+	IsQueue    bool                `json:"is_queue"`
 	HeaderKeys HeaderPair          `json:"header_keys"`
 }
 

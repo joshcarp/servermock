@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/joshcarp/dmt"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -56,7 +57,6 @@ func ExampleSetResponse() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
 	// {"Hello": "true"}
@@ -65,7 +65,7 @@ func ExampleSetResponse() {
 	// ------------------------
 }
 
-func ExampleSetResponseStack() {
+func ExampleSetResponseQueue() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -78,7 +78,7 @@ func ExampleSetResponseStack() {
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "true"}`),
 		StatusCode: 200,
-		IsStack:    true,
+		IsQueue:    true,
 	})
 	if err != nil {
 		panic(err)
@@ -87,7 +87,7 @@ func ExampleSetResponseStack() {
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "Blah"}`),
 		StatusCode: 200,
-		IsStack:    true,
+		IsQueue:    true,
 	})
 	if err != nil {
 		panic(err)
@@ -112,7 +112,6 @@ func ExampleSetResponseStack() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
@@ -155,10 +154,9 @@ func ExampleReset() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
-	//
+	// Error returning bytes: rpc error: code = Unknown desc = Unknown request
 	// ------------------------
 }
 
@@ -193,7 +191,6 @@ func ExampleSetGRPCResponse() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /example.ExampleService/getExample Length: 25
 	// Returning bytes for request: /example.ExampleService/getExample
 	// ExampleName
@@ -234,7 +231,6 @@ func ExampleSetGRPCError() { //nolint: govet
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /example.ExampleService/getExample Length: 15
 	// Returning bytes for request: /example.ExampleService/getExample
 	// rpc error: code = Unknown desc = Whatever123
@@ -266,7 +262,6 @@ func ExampleSetResponseError() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 0
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
 	// Error code: 404
@@ -303,7 +298,6 @@ func ExampleSetResponseHeaderKeys() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /example.ExampleService/getExample Length: 25
 	// Returning bytes for request: /example.ExampleService/getExample
 	// ExampleName
@@ -348,7 +342,6 @@ func ExampleServeRand() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
 	// Loading data for for request: /foo.service.bar.SomethingAPI/GetWhatever
 	// {"Hello": "true"}
@@ -385,8 +378,57 @@ func ExampleGetResponses() {
 
 	// Output:
 	// ------------------------
-	// Loading data for for request: /
 	// Setting Data for request: /foo.service.bar.SomethingAPI/GetWhatever Length: 17
 	// [{/foo.service.bar.SomethingAPI/GetWhatever map[] [123 34 72 101 108 108 111 34 58 32 34 116 114 117 101 34 125] false 200 false { []}}]
+	// ------------------------
+}
+
+func ExampleSetGRPCQueue() {
+	fmt.Println("------------------------")
+	defer fmt.Println("------------------------")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	err := dmt.Serve(ctx, Printf, ":8001")
+	if err != nil {
+		panic(err)
+	}
+	conn, err := grpc.Dial("localhost:8001", grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	client := NewExampleServiceClient(conn)
+
+	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{Name: "call 1"},
+		dmt.Request{
+			Path:    "/example.ExampleService/getExample",
+			IsQueue: true,
+		})
+	if err != nil {
+		panic(err)
+	}
+	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{Name: "call 2"},
+		dmt.Request{
+			Path:    "/example.ExampleService/getExample",
+			IsQueue: true,
+		})
+	if err != nil {
+		panic(err)
+	}
+	example, _ := client.GetExample(context.Background(), &Example{})
+	fmt.Println(example.Name)
+	example, _ = client.GetExample(context.Background(), &Example{})
+	fmt.Println(example.Name)
+	// or defer cancel()
+	cancel()
+
+	// Output:
+	// ------------------------
+	// Setting Data for request: /example.ExampleService/getExample Length: 8
+	// Setting Data for request: /example.ExampleService/getExample Length: 8
+	// Returning bytes for request: /example.ExampleService/getExample
+	// call 1
+	// Returning bytes for request: /example.ExampleService/getExample
+	// call 2
 	// ------------------------
 }

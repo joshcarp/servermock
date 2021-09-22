@@ -19,7 +19,6 @@ func Serve(ctx context.Context, log Logger, addr string) error {
 	return ServeLis(ctx, log, ln)
 }
 
-/* ServeLis servers a dmt server on a listener and blocks until the server is running. Use context.WithCancel to stop the server */
 func ServeLis(ctx context.Context, log Logger, ln net.Listener) error {
 	s := New(log)
 	go func() {
@@ -36,8 +35,13 @@ func ServeLis(ctx context.Context, log Logger, ln net.Listener) error {
 		Multiplier: 2,
 		Max:        10 * time.Second,
 	}
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%d", ln.Addr().(*net.TCPAddr).Port), nil)
+	if err != nil {
+		return err
+	}
+	req.Header = map[string][]string{"DMT-MODE": {"get"}}
 	for {
-		_, err := http.Get(fmt.Sprintf("http://localhost:%d", ln.Addr().(*net.TCPAddr).Port))
+		_, err := http.DefaultClient.Do(req)
 		if err != nil {
 			if err := gax.Sleep(ctx, bo.Pause()); err != nil {
 				return err
@@ -48,7 +52,6 @@ func ServeLis(ctx context.Context, log Logger, ln net.Listener) error {
 	}
 }
 
-/* ServeRand servers a dmt server on a random port and blocks until the server is running. Use context.WithCancel to stop the server */
 func ServeRand(ctx context.Context, log Logger) (int, error) {
 	ln, err := net.Listen("tcp", ":0")
 	if err != nil {

@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"sync"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func storeData(sm *sync.Map, trace string, data Request) {
@@ -21,22 +25,6 @@ func storeData(sm *sync.Map, trace string, data Request) {
 	sm.Store(trace, append([]Request{data}, valBytes...)) //[n-1] is always the element to be read (and deleted) first
 }
 
-func loadData(sm *sync.Map, key string) (Request, bool) {
-	val, ok := sm.Load(key)
-	if !ok {
-		return Request{}, false
-	}
-	valBytes := val.([]Request)
-	if len(valBytes) == 0 {
-		return Request{}, false
-	}
-	req := valBytes[len(valBytes)-1]
-	if req.IsStack {
-		sm.Store(key, valBytes[:len(valBytes)-1])
-	}
-	return req, true
-}
-
 func loadAllData(sm *sync.Map, key string) ([]Request, bool) {
 	val, ok := sm.Load(key)
 	if !ok {
@@ -47,6 +35,27 @@ func loadAllData(sm *sync.Map, key string) ([]Request, bool) {
 		return nil, false
 	}
 	return valBytes, true
+}
+
+func loadData(sm *sync.Map, method string, f func(string) []string) (Request, error) {
+	d, ok := loadAllData(sm, method)
+	if !ok {
+		return Request{}, status.Error(codes.Unknown, "Unknown request")
+	}
+	var entry Request
+	for i := len(d) - 1; i >= 0; i-- {
+		dd := d[i]
+		mdd := f(dd.HeaderKeys.Key)
+		if reflect.DeepEqual(mdd, dd.HeaderKeys.Val) {
+			entry = dd
+			if entry.IsQueue {
+				sm.Store(method, append(d[:i], d[i+1:]...))
+			}
+			break
+		}
+
+	}
+	return entry, nil
 }
 
 func resetData(sm *sync.Map) {
