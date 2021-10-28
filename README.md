@@ -1,41 +1,79 @@
-# servermock
 
-Dynamic Mocking Tool
+<p align="center">
+</p>
 
-## Usage
 
-1. run a servermock server ./servermock
+<h1 align="center">servermock</h1>
 
-2a. use the go API to set a response for a path
+<div align="center">
 
-```go
-SetResponse("http://localhost:8000", "/path/whatever", "{'Foo':'Bar'}")
-SetGRPCResponse("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever", proto.Message)
-SetJsonResponse("http://localhost:8000", "/path/whatever", interface{})
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+[![GitHub Issues](https://img.shields.io/github/issues/joshcarp/servermock)](https://github.com/joshcarp/servermock/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/joshcarp/servermock)](https://github.com/joshcarp/servermock/pulls)
+[![License](https://img.shields.io/badge/license-apache2-blue.svg)](/LICENSE)
 
+</div>
+
+---
+
+
+## 📝 Table of Contents
+- [About](#about)
+- [Getting Started](#getting_started)
+- [Usage](#usage)
+- [Authors](#authors)
+- [Acknowledgments](#acknowledgement)
+
+## 🧐 About <a name = "about"></a>
+
+servermock is a go package that can be used to mock out http or grpc servers simply without any external server implementations.
+
+
+## 🚀 Usage <a name = "usage"></a>
+
+### Inline in golang
+1. Start a server
+```golang
+err := servermock.Serve(ctx, Printf, ":8000")
+```
+2. Set the response
+```golang
+err = servermock.SetResponse("http://localhost:8000", servermock.Request{
+		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
+		Body:       []byte(`{"Hello": "true"}`),
+		StatusCode: 200,
+	})
+```
+3. Send a request
+```golang
+resp, err := http.Get("http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever")
+// {"Hello": "true"}
 ```
 
-2b. OR use the `Set-Data:` Header to post data for a path
-
+### In a docker container
+1. Run the docker container
 ```bash
-curl -d '{"Request": "1"}' -H "Set-Data: true" localhost:8000/path/whatever -X POST
-curl -d '{"Request": "2"}' -H "Set-Data: true" localhost:8000/path/whatever -X POST
-curl -d '{"Request": "3"}' -H "Set-Data: true" localhost:8000/path/whatever -X POST
+docker run -p 8000:8000 joshcarp/servermock
 ```
-
-3. Set your downstream to point at `http://localhost:8000`
-
+2. Set the response conforming to the `servermock.Request` type
 ```bash
-curl -H localhost:8000/path/whatever
-> {"Request": "1"}
-curl localhost:8000/path/whatever
-> {"Request": "2"}
-curl localhost:8000/path/whatever
-> {"Request": "3"}
+curl --header "Content-Type: application/json" --header "SERVERMOCK-MODE: SET" --request POST --data '{"path":"/foo.service.bar.SomethingAPI/GetWhatever","body":"eyJIZWxsbyI6ICJ0cnVlIn0=","status_code":200' http://localhost:8000/foo.service.bar.SomethingAPI/GetWhatever
+```
+3. Send a request
+```bash
+curl localhost:8000/foo.service.bar.SomethingAPI/GetWhatever
+> {"Hello": "true"}                                                                                                  
 ```
 
-or whatever the equivalent grpc request would be (not supporting the reflection api)
+### gRPC vs REST servers
 
-Note: Requests are set FIFO for every Path, and a request is cleared
-from memory once a request is completed
+Setting data always occurs over http 1.0 using the json payload, gRPC servers are, after all, just servers that return some bytes.
 
+see [example/example_test.go](example/example_test.go) for full examples.
+
+## ✍️ Authors <a name = "authors"></a>
+- [@joshcarp](https://github.com/joshcarp)
+
+## 🎉 Acknowledgements <a name = "acknowledgement"></a>
+- [@emmaCullen](https://github.com/emmaCullen) had the original idea for this package.
+- [github.com/dnaeon/go-vcr](https://github.com/dnaeon/go-vcr) is similar but different; whilst any network traffic can be recorded and replayed, servermock tries tosimplify mocking of servers in unit tests/contexts where writing a specific server implementation is a little too much. 
