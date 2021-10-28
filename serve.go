@@ -1,4 +1,4 @@
-package dmt
+package servermock
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/googleapis/gax-go/v2"
 )
 
-/* Serve servers a dmt server and blocks until the server is running. Use context.WithCancel to stop the server */
+/* Serve servers a servermock server and blocks until the server is running. Use context.WithCancel to stop the server */
 func Serve(ctx context.Context, log Logger, addr string) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -39,7 +39,7 @@ func ServeLis(ctx context.Context, log Logger, ln net.Listener) error {
 	if err != nil {
 		return err
 	}
-	req.Header = map[string][]string{"DMT-MODE": {"get"}}
+	req.Header = map[string][]string{"SERVERMOCK-MODE": {"get"}}
 	for {
 		_, err := http.DefaultClient.Do(req)
 		if err != nil {

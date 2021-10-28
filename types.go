@@ -1,4 +1,4 @@
-package dmt
+package servermock
 
 type Logger func(format string, args ...interface{})
 

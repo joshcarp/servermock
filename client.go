@@ -1,4 +1,4 @@
-package dmt
+package servermock
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const HEADERMODE = "DMT-MODE"
+const HEADERMODE = "SERVERMOCK-MODE"
 
 /* SetResponse sets the return to pth to that of b bytes */
 func SetResponse(url string, request Request) error {

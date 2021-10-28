@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/joshcarp/dmt"
+	"github.com/joshcarp/servermock"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -24,12 +24,12 @@ func ExampleSetResponse() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	err := dmt.Serve(ctx, Printf, ":8000")
+	err := servermock.Serve(ctx, Printf, ":8000")
 	if err != nil {
 		panic(err)
 	}
 
-	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+	err = servermock.SetResponse("http://localhost:8000", servermock.Request{
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "true"}`),
 		StatusCode: 200,
@@ -69,12 +69,12 @@ func ExampleSetResponseQueue() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	err := dmt.Serve(ctx, Printf, ":8000")
+	err := servermock.Serve(ctx, Printf, ":8000")
 	if err != nil {
 		panic(err)
 	}
 
-	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+	err = servermock.SetResponse("http://localhost:8000", servermock.Request{
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "true"}`),
 		StatusCode: 200,
@@ -83,7 +83,7 @@ func ExampleSetResponseQueue() {
 	if err != nil {
 		panic(err)
 	}
-	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+	err = servermock.SetResponse("http://localhost:8000", servermock.Request{
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "Blah"}`),
 		StatusCode: 200,
@@ -125,12 +125,12 @@ func ExampleReset() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	err := dmt.Serve(ctx, Printf, ":8000")
+	err := servermock.Serve(ctx, Printf, ":8000")
 	if err != nil {
 		panic(err)
 	}
 
-	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+	err = servermock.SetResponse("http://localhost:8000", servermock.Request{
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "true"}`),
 		StatusCode: 200,
@@ -138,7 +138,7 @@ func ExampleReset() {
 	if err != nil {
 		panic(err)
 	}
-	err = dmt.Reset("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever")
+	err = servermock.Reset("http://localhost:8000", "/foo.service.bar.SomethingAPI/GetWhatever")
 	if err != nil {
 		panic(err)
 	}
@@ -164,7 +164,7 @@ func ExampleSetGRPCResponse() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	err := dmt.Serve(ctx, Printf, ":8001")
+	err := servermock.Serve(ctx, Printf, ":8001")
 	if err != nil {
 		panic(err)
 	}
@@ -175,10 +175,10 @@ func ExampleSetGRPCResponse() {
 	defer conn.Close()
 	client := NewExampleServiceClient(conn)
 
-	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{
+	err = servermock.SetGRPCResponse("http://localhost:8001", &Example{
 		Name:     "ExampleName",
 		Whatever: "ExampleFoo",
-	}, dmt.Request{Path: "/example.ExampleService/getExample"})
+	}, servermock.Request{Path: "/example.ExampleService/getExample"})
 	if err != nil {
 		panic(err)
 	}
@@ -202,7 +202,7 @@ func ExampleSetGRPCError() { //nolint: govet
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	err := dmt.Serve(ctx, Printf, ":8000")
+	err := servermock.Serve(ctx, Printf, ":8000")
 	if err != nil {
 		panic(err)
 	}
@@ -213,9 +213,9 @@ func ExampleSetGRPCError() { //nolint: govet
 	defer conn.Close()
 	client := NewExampleServiceClient(conn)
 
-	err = dmt.SetGRPCResponse("http://localhost:8000",
+	err = servermock.SetGRPCResponse("http://localhost:8000",
 		status.New(codes.Unknown, "Whatever123").Proto(),
-		dmt.Request{
+		servermock.Request{
 			Path:    "/example.ExampleService/getExample",
 			Body:    nil,
 			IsError: true,
@@ -241,11 +241,11 @@ func ExampleSetResponseError() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	err := dmt.Serve(ctx, Printf, ":8000")
+	err := servermock.Serve(ctx, Printf, ":8000")
 	if err != nil {
 		panic(err)
 	}
-	err = dmt.SetResponse("http://localhost:8000", dmt.Request{
+	err = servermock.SetResponse("http://localhost:8000", servermock.Request{
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		StatusCode: 404,
 	})
@@ -272,7 +272,7 @@ func ExampleSetResponseHeaderKeys() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	err := dmt.Serve(ctx, Printf, ":8001")
+	err := servermock.Serve(ctx, Printf, ":8001")
 	if err != nil {
 		panic(err)
 	}
@@ -283,10 +283,10 @@ func ExampleSetResponseHeaderKeys() {
 	defer conn.Close()
 	client := NewExampleServiceClient(conn)
 
-	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{
+	err = servermock.SetGRPCResponse("http://localhost:8001", &Example{
 		Name:     "ExampleName",
 		Whatever: "ExampleFoo",
-	}, dmt.Request{Path: "/example.ExampleService/getExample", HeaderKeys: dmt.HeaderPair{Key: "Authorisation", Val: []string{"Bearer foo123"}}})
+	}, servermock.Request{Path: "/example.ExampleService/getExample", HeaderKeys: servermock.HeaderPair{Key: "Authorisation", Val: []string{"Bearer foo123"}}})
 	if err != nil {
 		panic(err)
 	}
@@ -309,12 +309,12 @@ func ExampleServeRand() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	port, err := dmt.ServeRand(ctx, Printf)
+	port, err := servermock.ServeRand(ctx, Printf)
 	if err != nil {
 		panic(err)
 	}
 
-	err = dmt.SetResponse(fmt.Sprintf("http://localhost:%d", port), dmt.Request{
+	err = servermock.SetResponse(fmt.Sprintf("http://localhost:%d", port), servermock.Request{
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "true"}`),
 		StatusCode: 200,
@@ -354,12 +354,12 @@ func ExampleGetResponses() {
 	fmt.Println("------------------------")
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
-	port, err := dmt.ServeRand(ctx, Printf)
+	port, err := servermock.ServeRand(ctx, Printf)
 	if err != nil {
 		panic(err)
 	}
 
-	err = dmt.SetResponse(fmt.Sprintf("http://localhost:%d", port), dmt.Request{
+	err = servermock.SetResponse(fmt.Sprintf("http://localhost:%d", port), servermock.Request{
 		Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 		Body:       []byte(`{"Hello": "true"}`),
 		StatusCode: 200,
@@ -368,7 +368,7 @@ func ExampleGetResponses() {
 		panic(err)
 	}
 
-	reqs, err := dmt.GetResponses(fmt.Sprintf("http://localhost:%d", port), "/foo.service.bar.SomethingAPI/GetWhatever")
+	reqs, err := servermock.GetResponses(fmt.Sprintf("http://localhost:%d", port), "/foo.service.bar.SomethingAPI/GetWhatever")
 	if err != nil {
 		panic(err)
 	}
@@ -388,7 +388,7 @@ func ExampleSetGRPCQueue() {
 	defer fmt.Println("------------------------")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	err := dmt.Serve(ctx, Printf, ":8001")
+	err := servermock.Serve(ctx, Printf, ":8001")
 	if err != nil {
 		panic(err)
 	}
@@ -399,16 +399,16 @@ func ExampleSetGRPCQueue() {
 	defer conn.Close()
 	client := NewExampleServiceClient(conn)
 
-	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{Name: "call 1"},
-		dmt.Request{
+	err = servermock.SetGRPCResponse("http://localhost:8001", &Example{Name: "call 1"},
+		servermock.Request{
 			Path:    "/example.ExampleService/getExample",
 			IsQueue: true,
 		})
 	if err != nil {
 		panic(err)
 	}
-	err = dmt.SetGRPCResponse("http://localhost:8001", &Example{Name: "call 2"},
-		dmt.Request{
+	err = servermock.SetGRPCResponse("http://localhost:8001", &Example{Name: "call 2"},
+		servermock.Request{
 			Path:    "/example.ExampleService/getExample",
 			IsQueue: true,
 		})

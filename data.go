@@ -1,4 +1,4 @@
-package dmt
+package servermock
 
 import (
 	"encoding/json"
