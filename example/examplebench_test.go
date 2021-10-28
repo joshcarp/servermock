@@ -8,12 +8,12 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/joshcarp/dmt"
+	"github.com/joshcarp/servermock"
 )
 
 func BenchmarkServeRand(b *testing.B) {
 	ctx, cancel := context.WithCancel(context.Background())
-	port, err := dmt.ServeRand(ctx, func(string, ...interface{}) {
+	port, err := servermock.ServeRand(ctx, func(string, ...interface{}) {
 	})
 	if err != nil {
 		panic(err)
@@ -23,7 +23,7 @@ func BenchmarkServeRand(b *testing.B) {
 		for j := 0; j < 50; j++ {
 			wg.Add(1)
 			go func(wg *sync.WaitGroup) {
-				err = dmt.SetResponse(fmt.Sprintf("http://localhost:%d", port), dmt.Request{
+				err = servermock.SetResponse(fmt.Sprintf("http://localhost:%d", port), servermock.Request{
 					Path:       "/foo.service.bar.SomethingAPI/GetWhatever",
 					Body:       []byte(`{"Hello": "true"}`),
 					StatusCode: 200,

@@ -1,10 +1,10 @@
-# dmt
+# servermock
 
 Dynamic Mocking Tool
 
 ## Usage
 
-1. run a dmt server ./dmt
+1. run a servermock server ./servermock
 
 2a. use the go API to set a response for a path
 

@@ -1,4 +1,4 @@
-name: deploy dmt
+name: deploy servermock
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: docker.io/joshcarp/dmt
+          repository: docker.io/joshcarp/servermock
           tag_with_ref: true
           dockerfile: ./Dockerfile
           tags: latest

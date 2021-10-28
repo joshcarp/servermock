@@ -1,4 +1,4 @@
-module github.com/joshcarp/dmt
+module github.com/joshcarp/servermock
 
 go 1.16
 
